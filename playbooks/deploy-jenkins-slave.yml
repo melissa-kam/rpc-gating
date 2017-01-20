@@ -1,0 +1,22 @@
+---
+- hosts: localhost
+  connection: local
+  gather_facts: False
+  tags:
+    - build
+  roles:
+    - build-cloud-instances
+
+- hosts: localhost
+  connection: local
+  gather_facts: False
+  tags:
+    - jenkins-setup
+  roles:
+    - get-cloud-instance-by-name
+
+- hosts: cloud_instances
+  tags:
+    - jenkins-setup
+  roles:
+    - setup-jenkins-slave

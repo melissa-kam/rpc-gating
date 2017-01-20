@@ -1,0 +1,40 @@
+---
+  - name: Copy RPC public keys
+    copy:
+      src: ../../../../keys/rcb.keys
+      dest: /root/.ssh/rcb.keys
+
+  - name: Add RPC public keys to authorized_keys
+    shell: cat /root/.ssh/rcb.keys >> /root/.ssh/authorized_keys
+
+  - name: Install apt packages
+    apt:
+      pkg: "{{ item }}"
+      state: installed
+      update_cache: yes
+    with_items:
+      - git
+      - default-jre
+      - python-dev
+      - python-pip
+      - build-essential
+
+  - name: Create Jenkins user
+    user:
+      name: jenkins
+      home: /var/lib/jenkins
+      shell: /bin/bash
+
+  - name: Set proper permissions for Jenkins home directory
+    file:
+      path: /var/lib/jenkins
+      owner: jenkins
+      group: jenkins
+
+  - name: Create SSH directory for Jenkins user
+    file:
+      path: /var/lib/jenkins/.ssh
+      state: directory
+
+  - name: Add RPC public keys to authorized_keys
+    shell: cp /root/.ssh/authorized_keys /var/lib/jenkins/.ssh/authorized_keys
