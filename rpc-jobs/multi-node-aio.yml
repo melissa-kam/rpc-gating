@@ -1,21 +1,22 @@
 - project:
     name: onmetal-all-in-one-deploy-rpc
     deploy-action:
-        - Setup-Host:
+        - Setup_Host:
             script: setup-host.sh
-        - Setup-Cobbler:
+        - Setup_Cobbler:
             script: setup-cobbler.sh
-        - Virtual-Networks:
+        - Virtual_Networks:
             script: setup-virsh-net.sh
-        - Deploy-VMs:
+        - Deploy_VMs:
             script: deploy-vms.sh
-        - OpenStack-Setup:
+        - OpenStack_Setup:
             script: deploy-osa.sh
     jobs:
-        - 'OnMetal-AIO-{deploy-action}'
+        - 'OnMetal_Multi_Node_AIO_{deploy-action}'
 
 - job-template:
-    name: 'OnMetal-AIO-{deploy-action}'
+    name: 'OnMetal_Multi_Node_AIO_{deploy-action}'
+    project-type: workflow
     build-discarder:
         days-to-keep: 30
     concurrent: true
@@ -24,40 +25,95 @@
             name: NODE
             description: "Name of Jenkins node to run on"
         - string:
+            name: OPENSTACK_ANSIBLE_BRANCH
+            default: stable/newton
+            description: Used only in OnMetal_Multi_Node_AIO_OpenStack_Setup
+        - string:
+            name: DEFAULT_IMAGE
+            default: '16.04'
+            description: Used only in OnMetal_Multi_Node_AIO_Setup_Cobbler
+        - bool:
+            name: PARTITION_HOST
+            default: true
+            description: Used only in OnMetal_Multi_Node_AIO_Setup_Host
+        - string:
             name: OSA_OPS_REPO
             default: https://github.com/openstack/openstack-ansible-ops
         - string:
             name: OSA_OPS_BRANCH
             default: master
+    dsl: |
+        node(env.NODE){
+        }
+
+- job:
+    name: 'OnMetal_Multi_Node_AIO_Prepare_Deployment'
+    project-type: workflow
+    build-discarder:
+        days-to-keep: 30
+    concurrent: true
+    parameters:
+        - label:
+            name: NODE
+            description: "Name of Jenkins node to run on"
         - string:
-            name: OSA_BRANCH
-            default: stable/mitaka
-            description: Used only in OnMetal-AIO-OpenStack-Setup
+            name: OPENSTACK_ANSIBLE_BRANCH
+            default: stable/newton
+            description: Used only in OnMetal_Multi_Node_AIO_OpenStack_Setup
+        - string:
+            name: DEFAULT_IMAGE
+            default: '16.04'
+            description: Used only in OnMetal_Multi_Node_AIO_Setup_Cobbler
         - bool:
             name: PARTITION_HOST
             default: true
-            description: Used only in OnMetal-AIO-Setup-Host
-    scm:
-        - git:
-            url: $OSA_OPS_REPO
-            branches:
-                - $OSA_OPS_BRANCH
-            wipe-workspace: false
-    wrappers:
-        - mask-passwords
-    builders:
-        - onmetal-aio-setup-script-builder:
-            script: "{script}"
+            description: Used only in OnMetal_Multi_Node_AIO_Setup_Host
+        - string:
+            name: OSA_OPS_REPO
+            default: https://github.com/openstack/openstack-ansible-ops
+        - string:
+            name: OSA_OPS_BRANCH
+            default: master
+    dsl: |
+        node(env.NODE){
+            dir("rpc-gating"){
+                git url: "https://github.com/melissa-kam/rpc-gating", branch: "temp"
+            }
+            dir("openstack-ansible-ops"){
+                git url: env.OSA_OPS_REPO, branch: env.OSA_OPS_BRANCH
+            }
+            def run_script = load 'rpc-gating/pipeline-steps/run_script.groovy'
 
-- builder:
-    name: onmetal-aio-setup-script-builder
-    description: Runs specified multi-node-aio script
-    builders:
-        - shell: |
-            #!/bin/bash
-            cd multi-node-aio
-            export OSA_BRANCH=$OSA_BRANCH
-            export PARTITION_HOST=$PARTITION_HOST
-            export RUN_OSA=false
-            export SSHKEY=$(sudo cat /root/.ssh/id_rsa.pub)
-            sudo -E ./{script}
+            dir("openstack-ansible-ops/multi-node-aio"){
+                stage ('Setup Host'){
+                    environment_vars = ["PARTITION_HOST=${env.PARTITION_HOST}"]
+                    run_script.call (
+                        script: 'setup-host.sh',
+                        environment_vars: environment_vars
+                    )
+                }
+                stage ('Setup_Cobbler'){
+                    run_script (
+                        SCRIPT: setup-host.sh,
+                        DEFAULT_IMAGE: env.DEFAULT_IMAGE
+                    )
+                }
+                stage ('Virtual_Networks'){
+                    run_script (
+                        SCRIPT: setup-virsh-net.sh
+                    )
+                }
+                stage ('Deploy_VMs'){
+                    run_script (
+                        SCRIPT: deploy-vms.sh
+                    )
+                }
+                stage ('OpenStack_Setup'){
+                    run_script (
+                        SCRIPT: deploy-osa.sh,
+                        OSA_BRANCH: env.OPENSTACK_ANSIBLE_BRANCH
+                    )
+                }
+            }
+
+        }
