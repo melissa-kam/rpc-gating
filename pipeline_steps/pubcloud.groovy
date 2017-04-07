@@ -11,20 +11,7 @@
  */
 def create(Map args){
   withEnv(["RAX_REGION=${args.region}"]){
-    withCredentials([
-      string(
-        credentialsId: "dev_pubcloud_username",
-        variable: "PUBCLOUD_USERNAME"
-      ),
-      string(
-        credentialsId: "dev_pubcloud_api_key",
-        variable: "PUBCLOUD_API_KEY"
-      ),
-      file(
-        credentialsId: 'id_rsa_cloud10_jenkins_file',
-        variable: 'JENKINS_SSH_PRIVKEY'
-      )
-    ]){
+    withCredentials(common.get_cloud_creds()){
       dir("rpc-gating/playbooks"){
         common.install_ansible()
         pyrax_cfg = common.writePyraxCfg(
@@ -53,20 +40,7 @@ def create(Map args){
  */
 def cleanup(Map args){
   withEnv(['ANSIBLE_FORCE_COLOR=true']){
-    withCredentials([
-      string(
-        credentialsId: "dev_pubcloud_username",
-        variable: "PUBCLOUD_USERNAME"
-      ),
-      string(
-        credentialsId: "dev_pubcloud_api_key",
-        variable: "PUBCLOUD_API_KEY"
-      ),
-      file(
-        credentialsId: 'id_rsa_cloud10_jenkins_file',
-        variable: 'jenkins_ssh_privkey'
-      )
-    ]){
+    withCredentials(common.get_cloud_creds()){
       dir("rpc-gating/playbooks"){
         common.install_ansible()
         pyrax_cfg = common.writePyraxCfg(
