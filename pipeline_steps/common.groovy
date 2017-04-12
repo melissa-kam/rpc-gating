@@ -278,7 +278,7 @@ def archive_artifacts(){
   } finally{
     // still worth trying to archiveArtifacts even if some part of
     // artifact collection failed.
-      common.uploadToCloudFiles(
+      pubcloud.uploadToCloudFiles(
         container: "jenkins_logs",
         src: "${env.WORKSPACE}/artifacts_${env.BUILD_TAG}.tar.bz2",
         html_report_dest: "${env.WORKSPACE}/artifacts_report/index.html")
@@ -380,31 +380,5 @@ def docker_cache_workaround(){
    sh "touch -t 201704100000 *.txt"
 }
 
-def uploadToCloudFiles(Map args){
-  withCredentials(get_cloud_creds()) {
-    dir("rpc-gating"){
-      git branch: env.RPC_GATING_BRANCH, url: env.RPC_GATING_REPO
-    }
-    dir("rpc-gating/playbooks") {
-      common.install_ansible()
-      pyrax_cfg = common.writePyraxCfg(
-        username: env.PUBCLOUD_USERNAME,
-        api_key: env.PUBCLOUD_API_KEY
-      )
-      withEnv(["RAX_CREDS_FILE=${pyrax_cfg}"]) {
-        common.venvPlaybook(
-          playbooks: ["upload_to_cloud_files.yml"],
-          venv: ".venv",
-          vars: [
-            container: args.container,
-            src: args.src,
-            html_report_dest: args.html_report_dest,
-            description_file: args.description_file
-          ]
-        ) // venvPlaybook
-      } // withEnv
-    } // dir
-  } // withCredentials
-}
 
 return this
