@@ -110,14 +110,24 @@ def openstack_ansible(Map args){
   }
 
   ansiColor('xterm'){
-    dir(args.path){
-      withEnv(common.get_deploy_script_env())
-      {
-        sh """#!/bin/bash
+    if (!('vm' in args)) {
+      dir(args.path) {
+        withEnv(common.get_deploy_script_env()){
+          sh """#!/bin/bash
           openstack-ansible ${args.playbook} ${args.args}
-        """
-      } //withEnv
-    } //dir
+          """
+        } //withEnv
+      } //dir
+    } else {
+      export_vars = ""
+      for (e in common.get_deploy_script_env()) {
+        export_vars += "export ${e}; "
+      }
+      sh """#!/bin/bash
+      sudo ssh -T -oStrictHostKeyChecking=no ${args.vm} \
+        '${export_vars} cd ${args.path}; openstack-ansible ${args.playbook} ${args.args}'
+      """
+    }
   } //colour
 }
 

@@ -111,6 +111,7 @@
             """
             multi_node_aio_prepare.prepare()
             deploy.deploy_sh(
+              vm: "deploy1",
               environment_vars: [
                 "DEPLOY_HAPROXY=yes",
                 "DEPLOY_ELK=yes",
@@ -119,16 +120,13 @@
                 "DEPLOY_MAAS=no"
                 ]
             ) // deploy_sh
+            multi_node_aio_prepare.multi_node_aio_networking()
             node(){{
-              dir("rpc-gating"){{
-                git branch: env.RPC_GATING_BRANCH, url: env.RPC_GATING_REPO
-              }}
-              maas.prepare(instance_name: instance_name)
-            }}
+            maas.prepare(instance_name: instance_name)
             maas.deploy()
             maas.verify()
-            tempest.tempest(vm: "infra1")
-            holland.holland()
+            tempest.tempest(vm: "infra1", "deploy1")
+            holland.holland("deploy1")
           }} // hardware node
           ssh_slave.destroy()
         }} // cit node
