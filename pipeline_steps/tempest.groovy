@@ -2,8 +2,10 @@ def tempest_install(vm=null){
   common.openstack_ansible(
     vm: vm,
     playbook: "os-tempest-install.yml",
-    path: "/opt/rpc-openstack/openstack-ansible/playbooks"
+    path: "/opt/rpc-openstack/openstack-ansible/playbooks",
+    enviornment_vars: ["ANSIBLE_CACHE_PLUGIN=memory"]
   )
+
 }
 
 def tempest_run(wrapper="") {
