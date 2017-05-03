@@ -8,6 +8,7 @@ import datetime
 import dateutil.parser
 from dateutil.tz import tzutc
 import os
+import re
 
 import pyrax
 import jenkins_node
@@ -34,7 +35,7 @@ def cleanup_instances(cs_client, age_limit, instance_prefix):
 
     prefixed_servers = (
         server for server in cs_client.servers.list()
-        if server.name.startswith(instance_prefix)
+        if re.match(instance_prefix, server.name)
     )
 
     for server in prefixed_servers:
