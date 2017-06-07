@@ -21,8 +21,7 @@ def holland(vm=null){
       common.openstack_ansible(
         vm: vm,
         playbook: "test_holland.yml",
-        path: "/opt/rpc-openstack/rpcd/playbooks",
-        environment_vars: ["ANSIBLE_CACHE_PLUGIN=memory"]
+        path: "/opt/rpc-openstack/rpcd/playbooks"
       )
     } //stage
   ) //conditionalStage
