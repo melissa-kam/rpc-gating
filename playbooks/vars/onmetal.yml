@@ -11,3 +11,7 @@ gating_overrides:
   tempest_testr_opts:
     - '--concurrency 3'
   tempest_run_tempest_opts: []
+  lxc_container_backing_store: dir
+  tempest_public_subnet_cidr: 172.29.248.0/26
+  neutron_l2_population: True
+  glance_default_store: swift
