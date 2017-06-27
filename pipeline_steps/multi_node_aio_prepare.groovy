@@ -34,7 +34,8 @@ def prepare() {
               "PRE_CONFIG_OSA=true",
               "RUN_OSA=false",
               "DATA_DISK_DEVICE=${env.DATA_DISK_DEVICE}",
-              "CONFIG_PREROUTING=false"]
+              "OSA_PORTS=6080 6082 443 80 8443",
+              "CONFIG_PREROUTING=true"]
           ) //run_script
         } //timeout
       } // dir
@@ -68,23 +69,7 @@ EOF
  * Post-deploy networking configuration
  */
 def multi_node_aio_networking(){
-  common.conditionalStep(
-    step_name: "Deploy RPC w/ Script",
-    step: {
-      dir("openstack-ansible-ops") {
-        git url: env.OSA_OPS_REPO, branch: env.OSA_OPS_BRANCH
-      }
-      dir("openstack-ansible-ops/${env.MULTI_NODE_AIO_DIR}") {
-        common.run_script(
-          script: 'config-deploy-node.sh',
-          environment_vars: [
-            "DEPLOY_OSA=false",
-            "OSA_PORTS=6080 6082 443 80 8443",
-            "CONFIG_PREROUTING=true"]
-        )
-      }
-    }
-  )
+  print "no-op"
 }
 
 return this;
