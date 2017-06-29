@@ -9,11 +9,6 @@ def prepare() {
       }
       dir("openstack-ansible-ops/${env.MULTI_NODE_AIO_DIR}") {
         timeout(time: 45, unit: "MINUTES") {
-          sh """
-          sed -i "s,<memory unit='GiB'>1,<memory unit='GiB'>8," templates/vmnode-config/deploy.openstackci.local.xml
-          sed -i "s,<currentMemory unit='GiB'>1,<currentMemory unit='GiB'>8," templates/vmnode-config/deploy.openstackci.local.xml
-          sed -i "s,<vcpu placement='static'>1,<vcpu placement='static'>10," templates/vmnode-config/deploy.openstackci.local.xml
-          """
           common.run_script(
             script: 'build.sh',
             environment_vars: [
