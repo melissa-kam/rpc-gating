@@ -125,6 +125,10 @@
     dsl: |
       common.shared_slave(){{
         try {{
+          // pass JJB axes through to environment
+          env.TRIGGER = "{trigger}"
+          env.TARGET = "mnaio"
+          env.SERIES = "{series}"
           instance_name = common.gen_instance_name()
           deploy_node = null
           pubcloud.getPubCloudSlave(instance_name: instance_name)
@@ -141,6 +145,7 @@
           multi_node_aio_prepare.connect_deploy_node(deploy_node, instance_ip)
 
           common.use_node(deploy_node){{
+            multi_node_aio_prepare.prepare_configs()
             deploy.deploy_sh(
               environment_vars: [
                 "DEPLOY_HAPROXY=yes",
@@ -153,7 +158,7 @@
             ) // deploy_sh
             parallel(
               "maas": {{
-                maas.prepare(instance_name: instance_name)
+                maas.prepare(instance_name: deploy_node)
                 maas.deploy()
                 maas.verify()
               }},

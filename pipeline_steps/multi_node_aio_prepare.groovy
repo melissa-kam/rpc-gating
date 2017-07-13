@@ -37,34 +37,52 @@ def prepare() {
       } // dir
     } //stage
   ) //conditionalStage
+}
 
+def prepare_configs(){
   common.conditionalStage(
     stage_name: 'Prepare RPC Configs',
     stage: {
-      common.prepareConfigs(
-        deployment_type: "onmetal"
-      )
-      sh """/bin/bash
-      echo "multi_node_aio_prepare.prepare/Prepare RPC Configs"
-      set -xe
-      scp -r -o StrictHostKeyChecking=no /opt/rpc-openstack deploy1:/opt/
-      scp -o StrictHostKeyChecking=no ${env.WORKSPACE}/user_zzz_gating_variables.yml deploy1:/etc/openstack_deploy/user_zzz_gating_variables.yml
+      common.prepareRpcGit(env.RPC_BRANCH)
 
-      ssh -T -o StrictHostKeyChecking=no deploy1 << 'EOF'
-      set -xe
-      sudo cp /etc/openstack_deploy/user_variables.yml /etc/openstack_deploy/user_variables.yml.bak
-      sudo cp -R /opt/rpc-openstack/openstack-ansible/etc/openstack_deploy /etc
-      sudo cp /etc/openstack_deploy/user_variables.yml.bak /etc/openstack_deploy/user_variables.yml
+      // If this branch can prepare its own configs, common.prepareConfigs
+      config_cap_file="/opt/rpc-openstack/gating/capabilities/mnaio_config"
+      if (fileExists(config_cap_file)){
+        ansiColor('xterm'){
+          dir("/opt/rpc-openstack"){
+            withEnv( common.get_deploy_script_env() + [
+              "CONFIGURE_MNAIO=yes",
+              "DEPLOY_OA=no",
+              "DEPLOY_RPC=no"
+            ]){
+              sh """#!/bin/bash
+              scripts/deploy.sh
+              """
+            }
+          }
+        }
+      } else {
+        common.prepareConfigs(
+          deployment_type: "onmetal"
+        )
+        sh """/bin/bash
+        echo "multi_node_aio_prepare.prepare/Prepare RPC Configs"
+        set -xe
+        sudo cp /etc/openstack_deploy/user_variables.yml /etc/openstack_deploy/user_variables.yml.bak
+        sudo cp -R /opt/rpc-openstack/openstack-ansible/etc/openstack_deploy /etc
+        sudo cp /etc/openstack_deploy/user_variables.yml.bak /etc/openstack_deploy/user_variables.yml
+  
+        sudo mv /etc/openstack_deploy/user_secrets.yml /etc/openstack_deploy/user_osa_secrets.yml
+        sudo cp /opt/rpc-openstack/rpcd/etc/openstack_deploy/user_*_defaults.yml /etc/openstack_deploy
+        sudo cp /opt/rpc-openstack/rpcd/etc/openstack_deploy/user_rpco_secrets.yml /etc/openstack_deploy
+        sudo cp /opt/rpc-openstack/rpcd/etc/openstack_deploy/env.d/* /etc/openstack_deploy/env.d
+        """
+      } // if config_cap_file exists
 
-      sudo mv /etc/openstack_deploy/user_secrets.yml /etc/openstack_deploy/user_osa_secrets.yml
-      sudo cp /opt/rpc-openstack/rpcd/etc/openstack_deploy/user_*_defaults.yml /etc/openstack_deploy
-      sudo cp /opt/rpc-openstack/rpcd/etc/openstack_deploy/user_rpco_secrets.yml /etc/openstack_deploy
-      sudo cp /opt/rpc-openstack/rpcd/etc/openstack_deploy/env.d/* /etc/openstack_deploy/env.d
-EOF
-      """
     } //stage
   ) //conditionalStage
 }
+
 
 def connect_deploy_node(name, instance_ip) {
   inventory_content = """
