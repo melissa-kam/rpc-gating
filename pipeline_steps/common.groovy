@@ -567,6 +567,9 @@ void override_inventory(){
 void use_node(label=null, body){
   node(label){
     deleteDir()
+    dir("rpc-gating") {
+      git branch: env.RPC_GATING_BRANCH, url: env.RPC_GATING_REPO
+    }
     install_ansible()
     body()
     deleteDir()
@@ -576,11 +579,11 @@ void use_node(label=null, body){
 //shortcut functions for a shared slave or internal shared slave
 
 void shared_slave(label=null, body){
-  common.use_node(body, label)
+  common.use_node(label, body)
 }
 
 void internal_slave(body){
-  common.use_node(body, "CentOS")
+  common.use_node("CentOS", body)
 }
 
 return this
