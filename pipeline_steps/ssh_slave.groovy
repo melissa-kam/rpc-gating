@@ -20,8 +20,7 @@ def connect(port=22){
   common.conditionalStage(
     stage_name: "Connect Slave",
     stage: {
-      node('CentOS'){
-        deleteDir()
+      common.internal_slave(){
         dir('rpc-gating'){
           git branch: env.RPC_GATING_BRANCH, url: env.RPC_GATING_REPO
         }
@@ -61,8 +60,7 @@ def destroy(slave_name){
   common.conditionalStep(
     step_name: 'Destroy Slave',
     step: {
-      node('CentOS'){
-        deleteDir()
+      common.internal_slave(){
         dir('rpc-gating'){
           git branch: env.RPC_GATING_BRANCH, url: env.RPC_GATING_REPO
         }

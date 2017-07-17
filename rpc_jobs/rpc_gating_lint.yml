@@ -16,7 +16,7 @@
       - rpc-gating-github
     dsl: |
       currentBuild.result = 'SUCCESS'
-      node(){
+      common.shared_slave(){
         try{
           deleteDir()
           stage("Prepare"){

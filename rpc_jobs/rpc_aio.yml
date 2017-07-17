@@ -297,7 +297,7 @@
       env.ACTION = "{action}"
       env.SERIES = "{series}"
       timeout(time: 8, unit: 'HOURS'){{
-        node() {{
+        common.shared_slave() {{
           try {{
             dir("rpc-gating") {{
               git branch: env.RPC_GATING_BRANCH, url: env.RPC_GATING_REPO

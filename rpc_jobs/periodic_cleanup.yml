@@ -46,7 +46,7 @@
       for (int i=0; i<nodes.size(); i++){
         nodeName = nodes[i]
         parallel_steps['node_'+nodeName] = {
-          node(nodeName){
+          common.use_node(nodeName){
             stage("Cleanup "+nodeName){
               deleteDir()
               dir("rpc-gating") {
@@ -63,7 +63,7 @@
       parallel parallel_steps
 
       // run the pubcloud and jenkins node cleanup only on an internal slave
-      node('CentOS'){
+      common.internal_slave(){
           deleteDir()
           dir("rpc-gating") {
             stage("Prepare"){

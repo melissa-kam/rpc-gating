@@ -49,7 +49,7 @@ def webhooks(){
           } //dir
         } //withCredentials
         ip = readFile file: "instance_address"
-        node("master"){
+       common.use_node("master"){
           withCredentials([
             file(
               credentialsId: 'id_rsa_cloud10_jenkins_file',

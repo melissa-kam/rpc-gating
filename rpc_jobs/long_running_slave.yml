@@ -31,7 +31,7 @@
               Destroy Slave
 
     dsl: |
-      node(){
+      common.shared_slave(){
           dir("rpc-gating"){
             git branch: env.RPC_GATING_BRANCH, url: env.RPC_GATING_REPO
             common = load 'pipeline_steps/common.groovy'

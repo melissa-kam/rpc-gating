@@ -23,7 +23,7 @@
               Destroy Slave
     dsl: |
       // CIT Slave node
-      node(){
+      common.shared_slave(){
         dir("rpc-gating"){
           git branch: env.RPC_GATING_BRANCH, url: env.RPC_GATING_REPO
           pubcloud = load 'pipeline_steps/pubcloud.groovy'

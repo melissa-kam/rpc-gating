@@ -34,7 +34,7 @@
           name: REPO
           default: "{repo}"
     dsl: |
-      node() {{
+      common.shared_slave() {{
         deleteDir()
         if (REPO == "rpc_gating") {{
           branch = env.ghprbSourceBranch

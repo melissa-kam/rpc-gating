@@ -13,7 +13,6 @@ def create(Map args){
   withEnv(["RAX_REGION=${args.region}"]){
     withCredentials(common.get_cloud_creds()){
       dir("rpc-gating/playbooks"){
-        common.install_ansible()
         pyrax_cfg = common.writePyraxCfg(
           username: env.PUBCLOUD_USERNAME,
           api_key: env.PUBCLOUD_API_KEY
@@ -45,7 +44,6 @@ def cleanup(Map args){
   withEnv(['ANSIBLE_FORCE_COLOR=true']){
     withCredentials(common.get_cloud_creds()){
       dir("rpc-gating/playbooks"){
-        common.install_ansible()
         pyrax_cfg = common.writePyraxCfg(
           username: env.PUBCLOUD_USERNAME,
           api_key: env.PUBCLOUD_API_KEY
@@ -112,7 +110,7 @@ def runonpubcloud(body){
   instance_name = common.gen_instance_name()
   try{
     getPubCloudSlave(instance_name: instance_name)
-    node(instance_name){
+    common.use_node(instance_name){
       body()
     }
   }catch (e){
@@ -129,7 +127,6 @@ def uploadToCloudFiles(Map args){
       git branch: env.RPC_GATING_BRANCH, url: env.RPC_GATING_REPO
     }
     dir("rpc-gating/playbooks") {
-      common.install_ansible()
       pyrax_cfg = common.writePyraxCfg(
         username: env.PUBCLOUD_USERNAME,
         api_key: env.PUBCLOUD_API_KEY

@@ -140,8 +140,7 @@
           cancel-builds-on-update: true
     dsl: |
       // CIT slave
-      node() {{
-        deleteDir()
+      common.shared_slave() {{
         currentBuild.result = "SUCCESS"
         dir("rpc-gating") {{
           git branch: env.RPC_GATING_BRANCH, url: env.RPC_GATING_REPO
@@ -160,8 +159,7 @@
           common.conditionalStage(
             stage_name: "Build Apt Artifacts",
             stage: {{
-              node('ArtifactBuilder2') {{
-                deleteDir()
+              common.use_node('ArtifactBuilder2') {{
                 dir("rpc-gating") {{
                   git branch: env.RPC_GATING_BRANCH, url: env.RPC_GATING_REPO
                   common = load 'pipeline_steps/common.groovy'

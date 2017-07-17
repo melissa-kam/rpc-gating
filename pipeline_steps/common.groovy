@@ -553,8 +553,6 @@ void override_inventory(){
   conditionalStep(
     step_name: "Override Inventory",
     step:{
-        // This is usually done by the allocate step
-        common.install_ansible()
         if (env.OVERRIDE_INVENTORY_PATH == null){
           inventory_path = 'rpc-gating/playbooks/inventory/hosts'
         } else{
@@ -563,6 +561,26 @@ void override_inventory(){
         drop_inventory_file(env.INVENTORY, inventory_path)
     }
   )
+}
+
+// initialisation steps for nodes
+void use_node(label=null, body){
+  node(label){
+    deleteDir()
+    install_ansible()
+    body()
+    deleteDir()
+  }
+}
+
+//shortcut functions for a shared slave or internal shared slave
+
+void shared_slave(label=null, body){
+  common.use_node(body, label)
+}
+
+void internal_slave(body){
+  common.use_node(body, "CentOS")
 }
 
 return this

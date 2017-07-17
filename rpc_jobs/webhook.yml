@@ -45,7 +45,7 @@
             node ansible_host=YOUR_IP_HERE
 
     dsl: |
-      node('CentOS'){
+      common.internal_slave(){
           dir("rpc-gating"){
               git branch: env.RPC_GATING_BRANCH, url: env.RPC_GATING_REPO
               common = load 'pipeline_steps/common.groovy'

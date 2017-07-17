@@ -101,7 +101,7 @@
     dsl: |
       // CIT Slave node
       timeout(time: 8, unit: 'HOURS'){{
-        node() {{
+        common.shared_slave() {{
           try {{
             dir("rpc-gating") {{
               git branch: env.RPC_GATING_BRANCH, url: env.RPC_GATING_REPO
@@ -123,7 +123,7 @@
             // Adds maas token and url to environment
             // without adding another level of nesting
             maas.add_maas_env_vars()
-            node(env.INSTANCE_NAME) {{
+           common.use_node(env.INSTANCE_NAME) {{
               common.conditionalStage(
                 stage_name: 'Prepare HW AIO',
                 stage: {{
@@ -138,7 +138,7 @@
             deploy_node = "${{INSTANCE_NAME}}-deploy-vm"
             multi_node_aio_prepare.connect_deploy_node(deploy_node, instance_ip)
 
-            node(deploy_node) {{
+           common.use_node(deploy_node) {{
               deploy.deploy_sh(
                 environment_vars: [
                   "DEPLOY_HAPROXY=yes",
